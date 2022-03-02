@@ -4,9 +4,39 @@
     margin: 0 auto;
 
     display: flex;
-    align-items: center;
+    justify-content: center;
+    flex-direction: column;
 }
 
-.posts {
-    
+.post {
+    margin-top: 3rem;
+
+    .postTitle {
+        font-size: 1.5rem;
+    }
+
+    .postSubtitle {
+        margin-top: 0.5rem;
+        font-size: 1rem;
+        font-weight: normal;
+        color: var(--gray-100);
+    }
+
+    .postInfo {
+        margin-top: 1.5rem;
+        font-size: 0.75rem;
+        color: var(--gray-200);
+        display: flex;
+        .postInfoFirstPubDate, .postInfoAuthor {
+            display: flex;
+            align-items: center;
+        }
+        .postInfoAuthor {
+            margin-left: 1.5rem;
+        }
+        .postInfoIcon {
+            font-size: 1.25rem;
+            margin-right: 0.5rem;
+        }
+    }
 }

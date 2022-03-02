@@ -8,6 +8,8 @@
   --white: #FFFFFF;
   --black: #1A1D23;
   --pink: #FF57B2;
+  --gray-100: #D7D7D7;
+  --gray-200: #BBBBBB;
 }
 
 @media(max-width: 1080px) {
@@ -28,7 +30,7 @@ body {
 }
 
 body, input, textarea, select, button {
-  font: 400 1rem "Roboto", sans-serif; 
+  font: 400 1rem "Inter", sans-serif; 
 }
 
 button {
