@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import { GetStaticProps } from 'next';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -30,7 +32,33 @@ interface HomeProps {
 
 export default function Home({ postsPagination }: HomeProps) {
 
-	let { next_page, results } = postsPagination
+	const [nextPage, setNextPage] = useState(postsPagination.next_page)
+	const [results, setResults] = useState(postsPagination.results)
+
+	async function getMorePosts() {
+		
+		if (!nextPage) return
+
+		let response = await fetch(nextPage).then((res => res.json()))
+		setNextPage(response.next_page)
+		setResults([...results, ...response.results.map((post): Post => {
+			return {
+				uid: post.uid,
+				first_publication_date: new Date(post.first_publication_date).toLocaleDateString('pt-BR', {
+					day: '2-digit',
+					month: 'long',
+					year: 'numeric'
+				}),
+				data: {
+					title: post.data.title,
+					subtitle: post.data.subtitle,
+					author: post.data.author,
+				}
+			}
+		})]
+		)
+
+	}
 
 	return (
 		<>
@@ -39,8 +67,8 @@ export default function Home({ postsPagination }: HomeProps) {
 			</Head>
 			<main className={styles.container}>
 				{results.map(post => (
-					<Link href={`/posts/${post.uid}`}>
-						<a key={post.uid} className={styles.post}>
+					<Link href={`/posts/${post.uid}`} key={post.uid}>
+						<a className={styles.post}>
 							<h2 className={styles.postTitle}>
 								{post.data.title}
 							</h2>
@@ -58,6 +86,10 @@ export default function Home({ postsPagination }: HomeProps) {
 						</a>
 					</Link>
 				))}
+
+				{nextPage && <a className={styles.loadMorePosts} onClick={getMorePosts}>
+					Carregar mais posts
+				</a>}
 			</main>
 		</>
 	);
@@ -75,10 +107,8 @@ export const getStaticProps: GetStaticProps = async () => {
 			'posts.banner',
 			'posts.content'
 		],
-		pageSize: 20
+		pageSize: 5
 	});
-
-	// console.log(JSON.parse(JSON.stringify(postsResponse)))
 
 	const next_page = postsResponse.next_page
 	const results = postsResponse.results.map((post): Post => {
@@ -96,8 +126,6 @@ export const getStaticProps: GetStaticProps = async () => {
 			}
 		}
 	})
-
-	console.log(results);
 
 	const postsPagination = {
 		next_page,

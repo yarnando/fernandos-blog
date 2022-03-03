@@ -1,15 +1,17 @@
 .container {
     max-width: 700px;
-    height: 10rem;
-    margin: 0 auto;
 
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
+    margin: 0 auto;
+    padding-bottom: 3rem;
 }
 
 .post {
-    margin-top: 3rem;
+    display: block;
+    
+    
+    & + .post {
+        margin-top: 3rem;
+    } 
 
     .postTitle {
         font-size: 1.5rem;
@@ -38,5 +40,18 @@
             font-size: 1.25rem;
             margin-right: 0.5rem;
         }
+    }
+}
+
+.loadMorePosts {
+    display: block;
+    margin-top: 3rem;
+    color: var(--pink-200);
+    transition: color 0.2s;
+    font-weight: 600;
+
+    &:hover {
+        color: var(--pink-100);
+        cursor: pointer;
     }
 }
