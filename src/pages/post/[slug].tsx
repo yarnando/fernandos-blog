@@ -5,6 +5,8 @@ import Prismic from '@prismicio/client'
 
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
+import { FiCalendar, FiUser } from 'react-icons/fi';
+import { RichText } from 'prismic-dom';
 
 interface Post {
   first_publication_date: string | null;
@@ -28,23 +30,58 @@ interface PostProps {
 }
 
 export default function Post({ post }: PostProps) {
-  return <main>
-    <div className={styles.post}>
-      {JSON.stringify(post)}
-    </div>
-  </main>
+  return (
+    post ? <main>
+      <section className={styles.bannerContainer}>
+        <img
+          src={post.data.banner.url}
+          alt={`Banner ${post.data.title}`}
+          className={styles.banner}
+        />
+      </section>
+      <section className={styles.post}>
+        <h1 className={styles.postTitle}>
+          {post.data.title}
+        </h1>
+        <div className={styles.postInfo}>
+          <span className={styles.postInfoFirstPubDate}>
+            <FiCalendar className={styles.postInfoIcon} /> {post.first_publication_date}
+          </span>
+          <span className={styles.postInfoAuthor}>
+            <FiUser className={styles.postInfoIcon} /> {post.data.author}
+          </span>
+        </div>
+        {
+          post.data.content.map(content => {
+            return (
+              <section key={content.heading} className={styles.postContent}>
+                <h2 className={styles.postSubTitle}>
+                  {content.heading}
+                </h2>
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: RichText.asHtml(content.body),
+                  }}
+                ></div>                
+              </section>
+            )
+          })
+        }
+      </section>
+    </main> : 'Carregando...'
+  )
 }
 
-export const getStaticPaths = async () => {
+export const getStaticPaths: GetStaticPaths = async () => {
 
   const prismic = getPrismicClient();
-	const posts = await prismic.query([
-		Prismic.predicates.at('document.type', 'posts')
-	], {
-		fetch: [
-			'posts.uid',
-		],
-	});
+  const posts = await prismic.query([
+    Prismic.predicates.at('document.type', 'posts')
+  ], {
+    fetch: [
+      'posts.uid',
+    ],
+  });
 
   const postsToBeRendered = [
     'como-utilizar-hooks',
@@ -52,27 +89,29 @@ export const getStaticPaths = async () => {
   ]
 
   const paths = posts.results.reduce((postsArray, currentPost) => {
-    if( postsToBeRendered.includes(currentPost.uid) )
+    if (postsToBeRendered.includes(currentPost.uid))
       postsArray.push({
         params: {
           slug: currentPost.uid
         }
       })
     return postsArray
-  }, [])  
+  }, [])
 
   return { paths, fallback: true }
 
 };
 
-export const getStaticProps = async ({ params }) => {
+export const getStaticProps: GetStaticProps = async ({ params }) => {
   const { slug } = params
 
   const prismic = getPrismicClient();
   const response = await prismic.getByUID('posts', String(slug), {})
 
+  // console.log(JSON.stringify(response));
+
+
   const post = {
-    uid: slug,
     first_publication_date: new Date(response.first_publication_date).toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: 'long',
@@ -80,8 +119,11 @@ export const getStaticProps = async ({ params }) => {
     }),
     data: {
       title: response.data.title,
-      subtitle: response.data.subtitle,
+      banner: {
+        url: response.data.banner.url
+      },
       author: response.data.author,
+      content: response.data.content
     }
   }
 
