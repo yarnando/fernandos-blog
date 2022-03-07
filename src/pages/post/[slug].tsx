@@ -5,7 +5,7 @@ import Prismic from '@prismicio/client'
 
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
-import { FiCalendar, FiUser } from 'react-icons/fi';
+import { FiCalendar, FiUser, FiClock } from 'react-icons/fi';
 import { RichText } from 'prismic-dom';
 
 interface Post {
@@ -29,7 +29,24 @@ interface PostProps {
   post: Post;
 }
 
-export default function Post({ post }: PostProps) {
+export default function Post({ post }: PostProps, {numberOfWords}) {
+
+  const estimatedReadingTime = text => {
+    
+    const wordsCount = text.reduce( (wordsSum, content)  => {
+      let headingWords = content.heading.split(/\s+/).length;
+      wordsSum += headingWords
+      content.body.forEach(bodyContent => {
+        let bodyWords = bodyContent.text.split(/\s+/).length;
+        wordsSum += bodyWords
+      })
+      return wordsSum
+    }, 0)
+
+    return Math.ceil(wordsCount/200)
+
+  }
+
   return (
     post ? <main>
       <section className={styles.bannerContainer}>
@@ -49,6 +66,9 @@ export default function Post({ post }: PostProps) {
           </span>
           <span className={styles.postInfoAuthor}>
             <FiUser className={styles.postInfoIcon} /> {post.data.author}
+          </span>
+          <span className={styles.postInfoAuthor}>
+            <FiClock className={styles.postInfoIcon} /> {estimatedReadingTime(post.data.content)} min
           </span>
         </div>
         {
@@ -126,10 +146,10 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
       content: response.data.content
     }
   }
-
+  
   return {
     props: {
-      post
+      post,
     }
   }
 
