@@ -11,6 +11,9 @@ import styles from './home.module.scss';
 
 import { FiCalendar, FiUser } from 'react-icons/fi'
 
+import { format, parseISO } from 'date-fns'
+import { pt } from 'date-fns/locale';
+
 interface Post {
 	uid?: string;
 	first_publication_date: string | null;
@@ -44,11 +47,7 @@ export default function Home({ postsPagination }: HomeProps) {
 		setResults([...results, ...response.results.map((post): Post => {
 			return {
 				uid: post.uid,
-				first_publication_date: new Date(post.first_publication_date).toLocaleDateString('pt-BR', {
-					day: '2-digit',
-					month: 'long',
-					year: 'numeric'
-				}),
+				first_publication_date: post.first_publication_date,
 				data: {
 					title: post.data.title,
 					subtitle: post.data.subtitle,
@@ -58,6 +57,19 @@ export default function Home({ postsPagination }: HomeProps) {
 		})]
 		)
 
+	}
+
+	function parseDate(date) {
+		if(!date) return
+		let parsedDate = parseISO(date)
+		let formattedDate = format(
+			parsedDate, 
+			'dd MMM yyyy',
+			{ locale: pt }
+		  );	
+		  console.log(formattedDate);
+		  
+		return formattedDate
 	}
 
 	return (
@@ -77,7 +89,7 @@ export default function Home({ postsPagination }: HomeProps) {
 							</h3>
 							<div className={styles.postInfo}>
 								<span className={styles.postInfoFirstPubDate}>
-									<FiCalendar className={styles.postInfoIcon} /> {post.first_publication_date}
+									<FiCalendar className={styles.postInfoIcon} /> {parseDate(post.first_publication_date)}
 								</span>
 								<span className={styles.postInfoAuthor}>
 									<FiUser className={styles.postInfoIcon} /> {post.data.author}
@@ -111,25 +123,21 @@ export const getStaticProps: GetStaticProps = async () => {
 	});
 
 	const next_page = postsResponse.next_page
-	const results = postsResponse.results.map((post): Post => {
+	const posts = postsResponse.results.map((post): Post => {
 		return {
 			uid: post.uid,
-			first_publication_date: new Date(post.first_publication_date).toLocaleDateString('pt-BR', {
-				day: '2-digit',
-				month: 'long',
-				year: 'numeric'
-			}),
+			first_publication_date: post.first_publication_date,
 			data: {
 				title: post.data.title,
 				subtitle: post.data.subtitle,
 				author: post.data.author,
-			}
+			},
 		}
 	})
 
 	const postsPagination = {
 		next_page,
-		results
+		results: posts
 	}
 
 	return {
