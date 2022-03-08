@@ -7,6 +7,9 @@ import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
 import { FiCalendar, FiUser, FiClock } from 'react-icons/fi';
 import { RichText } from 'prismic-dom';
+import { format, parseISO } from 'date-fns';
+import { pt } from 'date-fns/locale';
+import { useRouter } from 'next/router';
 
 interface Post {
   first_publication_date: string | null;
@@ -47,8 +50,26 @@ export default function Post({ post }: PostProps, {numberOfWords}) {
 
   }
 
+	function parseDate(date) {
+		if(!date) return
+		let parsedDate = parseISO(date)
+		let formattedDate = format(
+			parsedDate, 
+			'dd MMM yyyy',
+			{ locale: pt }
+		  );	
+		  
+		return formattedDate
+	}  
+
+  const router = useRouter();
+
+  if (router.isFallback) {
+    return <h1>Carregando...</h1>;
+  }  
+
   return (
-    post ? <main>
+    <main>
       <section className={styles.bannerContainer}>
         <img
           src={post.data.banner.url}
@@ -62,7 +83,7 @@ export default function Post({ post }: PostProps, {numberOfWords}) {
         </h1>
         <div className={styles.postInfo}>
           <span className={styles.postInfoFirstPubDate}>
-            <FiCalendar className={styles.postInfoIcon} /> {post.first_publication_date}
+            <FiCalendar className={styles.postInfoIcon} /> {parseDate(post.first_publication_date)}
           </span>
           <span className={styles.postInfoAuthor}>
             <FiUser className={styles.postInfoIcon} /> {post.data.author}
@@ -88,7 +109,7 @@ export default function Post({ post }: PostProps, {numberOfWords}) {
           })
         }
       </section>
-    </main> : 'Carregando...'
+    </main>
   )
 }
 
@@ -96,27 +117,35 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
   const prismic = getPrismicClient();
   const posts = await prismic.query([
-    Prismic.predicates.at('document.type', 'posts')
+    Prismic.Predicates.at('document.type', 'posts')
   ], {
     fetch: [
       'posts.uid',
     ],
   });
 
-  const postsToBeRendered = [
-    'como-utilizar-hooks',
-    'criando-um-app-cra-do-zero1'
-  ]
+  // const postsToBeRendered = [
+  //   'como-utilizar-hooks',
+  //   'criando-um-app-cra-do-zero1'
+  // ]
 
-  const paths = posts.results.reduce((postsArray, currentPost) => {
-    if (postsToBeRendered.includes(currentPost.uid))
-      postsArray.push({
-        params: {
-          slug: currentPost.uid
-        }
-      })
-    return postsArray
-  }, [])
+  // const paths = posts.results.reduce((postsArray, currentPost) => {
+  //   if (postsToBeRendered.includes(currentPost.uid))
+  //     postsArray.push({
+  //       params: {
+  //         slug: currentPost.uid
+  //       }
+  //     })
+  //   return postsArray
+  // }, [])
+
+  const paths = posts.results.map(post => {
+    return {
+      params: {
+        slug: post.uid,
+      },
+    };
+  });  
 
   return { paths, fallback: true }
 
@@ -132,18 +161,21 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
 
   const post = {
-    first_publication_date: new Date(response.first_publication_date).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric'
-    }),
+    uid: response.uid,
+    first_publication_date: response.first_publication_date,
     data: {
       title: response.data.title,
+      subtitle: response.data.subtitle,
       banner: {
         url: response.data.banner.url
       },
       author: response.data.author,
-      content: response.data.content
+      content: response.data.content.map(content => {
+        return {
+          heading: content.heading,
+          body: [...content.body],
+        };
+      }),
     }
   }
   

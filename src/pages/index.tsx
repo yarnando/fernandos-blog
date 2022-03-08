@@ -67,7 +67,6 @@ export default function Home({ postsPagination }: HomeProps) {
 			'dd MMM yyyy',
 			{ locale: pt }
 		  );	
-		  console.log(formattedDate);
 		  
 		return formattedDate
 	}
