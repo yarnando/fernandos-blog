@@ -74,7 +74,7 @@ export default function Home({ postsPagination }: HomeProps) {
 	return (
 		<>
 			<Head>
-				<title>Home | CeifardBlog</title>
+				<title>Home | Fernando's Blog</title>
 			</Head>
 			<main className={styles.container}>
 				{results.map(post => (
